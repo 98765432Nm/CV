@@ -1,0 +1,601 @@
+---
+name: Nilver
+surname: Mego Sanchez
+position: "Estudiante de Ingeniería Agronómica | VIII ciclo"
+address: "Caserío El Balcón, C.P. Buena Vista, Bagua Grande, Utcubamba, Amazonas, Perú"
+email: "74402779z@gmail.com"
+phone: "+51 902240635"
+profilepic: "WhatsApp Image 2026-11-26 at 6.46.03 PM.jpeg"
+headcolor: "8C1E1E"
+format: awesomecv-pdf
+
+editor_options:
+  chunk_output_type: console
+
+execute:
+  warning: false
+  echo: false
+  message: false
+
+header-includes:
+  - \usepackage{setspace}
+  - \setstretch{1.25}
+  - \usepackage[dvipsnames]{xcolor}
+  - \usepackage[none]{hyphenat}
+  - \usepackage{pdfpages}
+  - \usepackage{datetime}
+  - \usepackage{fancyhdr}
+  - \usepackage{lastpage}
+  - \pagestyle{fancy}
+  - \fancyhf{}
+  - \fancyfoot[L]{\footnotesize Nilver Mego-Sanchez}
+  - \fancyfoot[C]{\footnotesize Curriculum Vitae}
+  - \fancyfoot[R]{\footnotesize \thepage\ | \pageref{LastPage}}
+  - \renewcommand{\headrulewidth}{0pt}
+---
+
+```{r setup}
+#| include: false
+
+if (file.exists("_extensions/format_dates.R")) {
+  source("_extensions/format_dates.R")
+}
+source("https://inkaverse.com/setup.r")
+library(vitae)
+library(kableExtra)
+
+params <- list(info = T
+               , docs = T
+               , lg = "sp"
+               )
+
+# https://quarto-vitae.github.io/
+```
+
+```{r}
+gs <- "https://docs.google.com/spreadsheets/d/1CV_EjFjU4_YPdWVILooLXcj8P7VqWXeUgolHozslzVE/edit?usp=sharing" %>% 
+  as_sheets_id()
+cv <- gs %>%
+  range_read("cv-sp") %>%
+  mutate(
+    DATES = case_when(
+      is.na(START) & is.na(END) ~ "",
+      is.na(START) ~ as.character(END),
+      is.na(END) ~ paste(format(as.Date(START), "%Y"), format(Sys.Date(), "%Y"), sep = " - "),
+      START == END ~ as.character(START),
+      TRUE ~ paste(START, END, sep = " - ")
+    )
+  )
+
+info <- gs %>%
+  range_read("info") %>%
+  filter(lg %in% c("bt", "sp")) %>%
+  select(INFORMATION, DESCRIPTION) %>%
+  tibble::deframe() %>%
+  as.list()
+```
+
+# Perfil profesional
+
+`r info$PROFILE_CV`
+
+<!-- ##  Intereses de investigación  -->
+
+<!-- \begin{center} -->
+<!-- \textbf{|>} `r info$INTEREST` \textbf{<|} -->
+<!-- \end{center} -->
+
+# Grados Académicos y Título Profesional
+
+::: {.entries style="detailed"}
+```{r}
+education <- cv %>% 
+  filter(grepl("education", CODE)) %>%
+  filter(!grepl("1000", CODE)) 
+
+education %>%
+  detailed_entries(with = POSITION
+                   , what = INSTITUTION
+                   , where = LOCATION
+                   , when = DATES
+                   , why = INFORMATION
+                   )
+```
+:::
+
+# Experiencia Profesional
+
+::: {.entries style="detailed"}
+```{r}
+job <- cv %>% 
+  filter(grepl("job", CODE))
+
+job %>% 
+  detailed_entries(what = INSTITUTION
+                   , when = DATES
+                   , with = POSITION 
+                   , where = LOCATION
+                   , why = INFORMATION
+                   )
+```
+:::
+
+<!-- # Experiencia docente universitario -->
+
+<!-- ::: {.entries style="detailed"} -->
+<!-- ```{r} -->
+<!-- teaching <- cv %>%  -->
+<!--   filter(grepl("teaching", CODE))  -->
+
+<!-- teaching %>%  -->
+<!--   detailed_entries(what = INSTITUTION -->
+<!--                    , when = DATES -->
+<!--                    , with = POSITION -->
+<!--                    , where = LOCATION -->
+<!--                    , why = INFORMATION -->
+<!--                    ) -->
+<!-- ``` -->
+<!-- ::: -->
+
+# Experiencia como capacitador
+
+::: {.entries style="detailed"}
+```{r}
+training <- cv %>% 
+  filter(grepl("training", CODE))
+
+training %>% 
+  detailed_entries(with = INSTITUTION
+                   , when = DATES
+                   , where = LOCATION
+                   , what = INFORMATION
+                   )
+```
+:::
+
+<!-- # Pasantias -->
+
+<!-- ::: {.entries style="detailed"} -->
+<!-- ```{r} -->
+<!-- internship <- cv %>%  -->
+<!--   filter(grepl("internship", CODE))  -->
+
+<!-- internship %>% -->
+<!--   detailed_entries(with = INSTITUTION -->
+<!--                  , what = INFORMATION -->
+<!--                  , where = LOCATION -->
+<!--                  , when = DATES -->
+<!--                  ) -->
+<!-- ``` -->
+<!-- ::: -->
+
+# Certificaciones
+
+::: {.entries style="detailed"}
+```{r}
+certifications <- cv %>% 
+  filter(grepl("certifications", CODE))
+
+certifications %>%
+  detailed_entries(with = INFORMATION
+                 , what = INSTITUTION
+                 , where = LOCATION
+                 , when = DATES
+                 )
+```
+:::
+
+# Habilidades
+
+```{r, results='asis'}
+skills <- gs %>% 
+  range_read("skills")
+
+tex <- function(x) {
+  x <- gsub("([&%$#_])", "\\\\\\1", x)
+  gsub("\\s*\\|\\s*", ", ", x)
+}
+
+cat("\\begin{cvskills}\n")
+cat(paste0("\\cvskill{", tex(skills$SKILL), "}{", tex(skills$DESCRIPTION), "}"
+           , collapse = "\n"))
+cat("\n\\end{cvskills}\n")
+```
+
+<!-- # Proyectos de Investigación -->
+
+<!-- ::: {.entries style="detailed"} -->
+<!-- ```{r} -->
+<!-- projects <- cv %>%  -->
+<!--   filter(grepl("projects", CODE)) %>% -->
+<!--   unite("INFO", c(INFORMATION, DESCRIPTION), sep = ": ") -->
+
+<!-- projects %>%  -->
+<!--   detailed_entries(what = INSTITUTION -->
+<!--                    , when = DATES -->
+<!--                    , with = POSITION -->
+<!--                    , where = LOCATION -->
+<!--                    , why = INFO -->
+<!--                    ) -->
+<!-- ``` -->
+<!-- ::: -->
+
+# Participación en eventos científicos y académicos
+
+## Asistente
+
+::: {.entries style="detailed"}
+```{r}
+asistente <- cv %>% 
+  filter(grepl("courses", CODE)) %>%
+  filter(grepl("Asistente", POSITION)) %>%
+  filter(dplyr::coalesce(END, START) >= (Sys.Date() - years(5)))
+
+asistente %>% 
+  detailed_entries(with = INSTITUTION
+                 , what = INFORMATION
+                 , where = LOCATION
+                 , when = DATES
+                 )
+```
+:::
+
+## Ponente
+
+::: {.entries style="detailed"}
+```{r}
+ponente <- cv %>% 
+  filter(grepl("events", CODE)) %>%
+  filter(grepl("Ponente", POSITION)) %>%
+  filter(dplyr::coalesce(END, START) >= (Sys.Date() - years(5)))
+
+ponente %>% 
+  detailed_entries(with = INSTITUTION
+                 , what = INFORMATION
+                 , where = LOCATION
+                 , when = DATES 
+                 )
+```
+:::
+
+## Organizador
+
+::: {.entries style="detailed"}
+```{r}
+organizador <- cv %>% 
+  filter(grepl("events", CODE)) %>%
+  filter(!grepl("Ponente", POSITION)) %>%
+  filter(dplyr::coalesce(END, START) >= (Sys.Date() - years(5)))
+
+organizador %>% 
+  detailed_entries(with = INSTITUTION
+                 , what = INFORMATION
+                 , why = POSITION
+                 , where = LOCATION
+                 , when = DATES 
+                 )
+```
+
+:::
+
+
+```{r, eval=!params$docs}
+knitr::knit_exit()
+```
+
+<!-- info -->
+
+```{r results='asis', eval= params$info}
+
+library(tidyverse)
+
+flatten_dir <- "flattened_pdfs"
+
+if (!dir.exists(flatten_dir)) {
+  dir.create(flatten_dir)
+}
+
+flatten_pdfs <- function(pattern, path = ".") {
+
+  files <- list.files(
+    path = path,
+    full.names = TRUE,
+    recursive = TRUE,
+    pattern = pattern
+  ) %>%
+    normalizePath(winslash = "/", mustWork = TRUE) %>%
+    unique() %>%
+    discard(~ str_detect(.x, "/flattened_pdfs/"))
+
+  purrr::map_chr(files, function(x) {
+
+    flat <- file.path(
+      flatten_dir,
+      basename(x)
+    )
+
+    system2(
+      "qpdf",
+      c(
+        "--flatten-annotations=all",
+        shQuote(x),
+        shQuote(flat)
+      )
+    )
+
+    normalizePath(
+      flat,
+      winslash = "/",
+      mustWork = TRUE
+    )
+  })
+}
+
+files <- list.files(
+  path = ".",
+  full.names = TRUE,
+  recursive = TRUE,
+  pattern = "\\.pdf$"
+) %>%
+  discard(~ str_detect(.x, "/flattened_pdfs/"))
+
+img2print <- files %>%
+  keep(str_detect(., "info|CV")) %>%
+  enframe(value = "path") %>%
+  mutate(
+    name = basename(gsub("\\.pdf$", "", path)),
+    path = gsub("^\\./", "", path),
+    sort = case_when(
+      grepl("dni", name) ~ 1,
+      grepl("ruc", name) ~ 2,
+      grepl("rnp", name) ~ 3
+    )
+  ) %>%
+  arrange(sort) %>%
+  drop_na(sort) %>%
+  mutate(
+    chunk = paste0(
+      "\\includepdf[pagecommand={}, scale=1, pages={-}]{",
+      path,
+      "}"
+    )
+  ) %>%
+  pull(chunk)
+
+cat(img2print, sep = "\n")
+```
+
+<!-- documents -->
+
+\setcounter{section}{0} 
+\newpage
+
+
+
+```{r results='asis'}
+img2print <- flatten_pdfs(paste0(education$FILE, collapse = "|")) %>% 
+  enframe() %>% 
+  mutate(chunk = paste0(
+      "\\includepdf[pagecommand={}, scale=0.9, pages={-}]{",
+      value,
+      "}"
+    )
+  ) %>% 
+  pull(chunk) %>% 
+  discard(str_detect(., "1003_"))
+
+cat(img2print, sep = "\n")
+```
+
+
+
+```{r results='asis'}
+img2print <- flatten_pdfs(paste0(job$FILE, collapse = "|")) %>% 
+  enframe() %>% 
+  mutate(
+    pages = str_extract(
+      value,
+      "(?<=--)[0-9.]+(?=\\.pdf$)"
+    ),
+    pages = str_replace_all(pages, "\\.", ","),
+    pages = if_else(is.na(pages), "-", pages),
+    chunk = paste0(
+      "\\includepdf[pagecommand={}, scale=0.9, pages={",
+      pages,
+      "}]{",
+      value,
+      "}"
+    )
+  ) %>% 
+  pull(chunk)
+
+cat(img2print, sep = "\n")
+```
+
+
+
+```{r results='asis'}
+img2print <- flatten_pdfs(paste0(training$FILE, collapse = "|")) %>% 
+  enframe() %>% 
+  mutate(
+    pages = str_extract(
+      value,
+      "(?<=--)[0-9.]+(?=\\.pdf$)"
+    ),
+    pages = str_replace_all(pages, "\\.", ","),
+    pages = if_else(is.na(pages), "-", pages),
+    chunk = paste0(
+      "\\includepdf[pagecommand={}, scale=0.9, pages={",
+      pages,
+      "}]{",
+      value,
+      "}"
+    )
+  ) %>% 
+  pull(chunk)
+
+cat(img2print, sep = "\n")
+```
+
+<!-- \begin{center} -->
+<!--     \vspace*{\fill} -->
+<!--     \section{Experiencia docente universitario} -->
+<!--     \vspace*{\fill} -->
+<!-- \end{center} -->
+<!-- \newpage -->
+
+<!-- ```{r results='asis'} -->
+<!-- img2print <- list.files(full.names = T, recursive = T -->
+<!--                         , pattern = paste0(teaching$CODE, collapse = "|") -->
+<!--                         ) %>%  -->
+<!--   enframe() %>%  -->
+<!--   mutate(chunk = paste0( -->
+<!--       "\\includepdf[pagecommand={}, scale=0.9, pages={-}]{", -->
+<!--       value, -->
+<!--       "}" -->
+<!--     ) -->
+<!--   ) %>%  -->
+<!--   pull(chunk) -->
+
+<!-- cat(img2print, sep = "\n") -->
+<!-- ``` -->
+
+<!-- \begin{center} -->
+<!--     \vspace*{\fill} -->
+<!--     \section{Pasantias} -->
+<!--     \vspace*{\fill} -->
+<!-- \end{center} -->
+<!-- \newpage -->
+
+<!-- ```{r results='asis'} -->
+<!-- img2print <- list.files(full.names = T, recursive = T -->
+<!--                         , pattern = paste0(internship$CODE, collapse = "|") -->
+<!--                         ) %>%  -->
+<!--   enframe() %>%  -->
+<!--   mutate(chunk = paste0( -->
+<!--       "\\includepdf[pagecommand={}, scale=0.9, pages={-}]{", -->
+<!--       value, -->
+<!--       "}" -->
+<!--     ) -->
+<!--   ) %>%  -->
+<!--   pull(chunk) -->
+
+<!-- cat(img2print, sep = "\n") -->
+<!-- ``` -->
+\newpage
+
+\section{Documento Nacional de Identidad}
+
+\begin{center}
+
+\includegraphics[width=0.75\textwidth]{dni_frente.jpeg}
+
+\vspace{1cm}
+
+\includegraphics[width=0.75\textwidth]{dni_reverso.jpeg}
+
+\end{center}
+
+\newpage
+
+\begin{center}
+    \vspace*{\fill}
+    \section{Certificaciones}
+    \vspace*{\fill}
+\end{center}
+\newpage
+
+\includepdf[pagecommand={},scale=0.9,pages=-]{CERTIFICADOS.pdf}
+
+<!-- \begin{center} -->
+<!--     \vspace*{\fill} -->
+<!--     \section{Proyectos de Investigación} -->
+<!--     \vspace*{\fill} -->
+<!-- \end{center} -->
+<!-- \newpage -->
+
+<!-- ```{r results='asis'} -->
+<!-- img2print <- list.files( -->
+<!--   full.names = TRUE, -->
+<!--   recursive = TRUE, -->
+<!--   pattern = paste0(projects$CODE, collapse = "|") -->
+<!-- ) %>%  -->
+<!--   enframe() %>%  -->
+<!--   mutate( -->
+<!--     pages = str_extract( -->
+<!--       value, -->
+<!--       "(?<=--)[0-9.]+(?=\\.pdf$)" -->
+<!--     ), -->
+<!--     pages = str_replace_all(pages, "\\.", ","), -->
+<!--     pages = if_else(is.na(pages), "-", pages), -->
+<!--     chunk = paste0( -->
+<!--       "\\includepdf[pagecommand={}, scale=0.9, pages={", -->
+<!--       pages, -->
+<!--       "}]{", -->
+<!--       value, -->
+<!--       "}" -->
+<!--     ) -->
+<!--   ) %>%  -->
+<!--   pull(chunk) -->
+
+<!-- cat(img2print, sep = "\n") -->
+<!-- ``` -->
+
+
+
+```{r results='asis'}
+img2print <- flatten_pdfs(paste0(ponente$FILE, collapse = "|")) %>% 
+  enframe() %>% 
+  mutate(chunk = paste0(
+      "\\includepdf[pagecommand={}, scale=0.9, pages={-}]{",
+      value,
+      "}"
+    )
+  ) %>% 
+  pull(chunk)
+
+cat(img2print, sep = "\n")
+```
+
+
+
+```{r results='asis'}
+img2print <- flatten_pdfs(paste0(setdiff(organizador$FILE, asistente$FILE), collapse = "|")) %>% 
+  enframe() %>% 
+  mutate(chunk = paste0(
+      "\\includepdf[pagecommand={}, scale=0.9, pages={-}]{",
+      value,
+      "}"
+    )
+  ) %>% 
+  pull(chunk)
+
+cat(img2print, sep = "\n")
+```
+
+
+
+
+<!-- \begin{center} -->
+<!--     \vspace*{\fill} -->
+<!--     \section{Publicaciones científicas} -->
+<!--     \vspace*{\fill} -->
+<!-- \end{center} -->
+<!-- \newpage -->
+
+<!-- ```{r results='asis'} -->
+<!-- img2print <- list.files(full.names = T, recursive = T -->
+<!--                         , pattern = paste0(article$CODE, collapse = "|") -->
+<!--                         ) %>%  -->
+<!--   enframe() %>%  -->
+<!--   mutate(chunk = paste0( -->
+<!--       "\\includepdf[pagecommand={}, scale=0.9, pages={1}]{", -->
+<!--       value, -->
+<!--       "}" -->
+<!--     ) -->
+<!--   ) %>%  -->
+<!--   pull(chunk) -->
+
+<!-- cat(img2print, sep = "\n") -->
+<!-- ``` -->
+
